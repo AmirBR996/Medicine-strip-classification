@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medicine Tablet Predictor</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .upload-area {
+      background: var(--card);
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: var(--primary);
+      background: #eef2ff;
+    }
+
+    .upload-area.drag-over {
+      transform: scale(1.01);
+    }
+
+    .upload-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .upload-area h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .upload-area p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .preview-section {
+      margin-top: 24px;
+      display: none;
+    }
+
+    .preview-section.visible {
+      display: block;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .preview-header h3 {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .preview-card {
+      position: relative;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .preview-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-card .remove-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .preview-card .remove-btn:hover {
+      background: var(--danger);
+    }
+
+    .actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #f1f5f9;
+    }
+
+    .results-section {
+      margin-top: 32px;
+      display: none;
+    }
+
+    .results-section.visible {
+      display: block;
+    }
+
+    .interaction-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 32px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .interaction-card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .input-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-field label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .input-field input {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field input:focus {
+      border-color: var(--primary);
+    }
+
+    .results-header {
+      margin-bottom: 20px;
+    }
+
+
+    .results-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .prediction-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .prediction-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .prediction-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .prediction-badge {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .result-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      gap: 12px;
+    }
+
+    .result-rank {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .result-rank.top {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .result-name {
+      flex: 1;
+      font-size: 0.95rem;
+      font-weight: 500;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .result-bar-bg {
+      width: 120px;
+      height: 8px;
+      background: #f1f5f9;
+      border-radius: 999px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .result-bar-fill {
+      height: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .result-conf {
+      width: 50px;
+      text-align: right;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .medicine-info {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #bbf7d0;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 16px;
+    }
+
+    .medicine-info h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #065f46;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .info-item {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #d1fae5;
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #059669;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .no-info {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 12px;
+      padding: 16px;
+      color: #92400e;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    .error-card {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--danger);
+      font-weight: 500;
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 32px;
+      color: var(--text-secondary);
+    }
+
+    .loading.visible {
+      display: flex;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 640px) {
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .severity-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .severity-harmful {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .severity-moderate {
+      background: #fffbeb;
+      color: #92400e;
+      border: 1px solid #fef3c7;
+    }
+
+    .severity-non-harmful {
+      background: #f0fdf4;
+      color: #065f46;
+      border: 1px solid #bbf7d0;
+    }
+
+    .interaction-detail {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .interaction-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Medicine Tablet Predictor</h1>
+      <p>Upload a photo of a medicine tablet and get instant information</p>
+    </header>
+
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-icon">📷</div>
+      <h3>Drop an image here or click to browse</h3>
+      <p>Supports JPG, PNG, HEIC, and more</p>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="preview-section" id="previewSection">
+      <div class="preview-header">
+        <h3>Selected Images</h3>
+        <span id="fileCount" style="font-size: 0.85rem; color: var(--text-secondary);"></span>
+      </div>
+      <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" id="clearBtn" onclick="clearFiles()">Clear</button>
+      <button class="btn btn-primary" id="predictBtn" onclick="predict()">
+        <span>🔍</span> Predict Medicine
+      </button>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span>Analyzing image...</span>
+    </div>
+
+    <div class="results-section" id="resultsSection"></div>
+
+    <div class="interaction-card">
+      <h2>🔗 Medicine Interaction Checker</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">Upload images of two medicines to check for interactions between them.</p>
+      <div class="input-row">
+        <div class="input-field">
+          <label for="intFile1">Medicine 1 Image</label>
+          <input id="intFile1" type="file" accept="image/*">
+          <div id="intPreview1" style="margin-top:8px; display:none;">
+            <img id="intImg1" style="width:100%; height:120px; object-fit:cover; border-radius:12px; border:1px solid var(--border);">
+          </div>
+        </div>
+        <div class="input-field">
+          <label for="intFile2">Medicine 2 Image</label>
+          <input id="intFile2" type="file" accept="image/*">
+          <div id="intPreview2" style="margin-top:8px; display:none;">
+            <img id="intImg2" style="width:100%; height:120px; object-fit:cover; border-radius:12px; border:1px solid var(--border);">
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="checkInteraction()">
+        <span>⚡</span> Check Interaction
+      </button>
+      <div id="interactionResults" style="margin-top: 20px;"></div>
+    </div>
+    </div>
+
+    <datalist id="medicineNames"></datalist>
+
+<script>
+    const API_BASE = 'http://127.0.0.1:8000';
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const previewSection = document.getElementById('previewSection');
+    const previewGrid = document.getElementById('previewGrid');
+    const fileCount = document.getElementById('fileCount');
+    const resultsSection = document.getElementById('resultsSection');
+    let selectedFiles = [];
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, () => uploadArea.classList.add('drag-over'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('drag-over'), false);
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+      selectedFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+      updatePreview();
+    }
+
+    function updatePreview() {
+      previewGrid.innerHTML = '';
+      if (selectedFiles.length === 0) {
+        previewSection.classList.remove('visible');
+        return;
+      }
+
+      previewSection.classList.add('visible');
+      fileCount.textContent = `${selectedFiles.length} image${selectedFiles.length > 1 ? 's' : ''} selected`;
+
+      selectedFiles.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'preview-card';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '×';
+        removeBtn.onclick = () => removeFile(index);
+        card.appendChild(img);
+        card.appendChild(removeBtn);
+        previewGrid.appendChild(card);
+      });
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      updatePreview();
+    }
+
+    function clearFiles() {
+      selectedFiles = [];
+      fileInput.value = '';
+      updatePreview();
+      resultsSection.classList.remove('visible');
+      resultsSection.innerHTML = '';
+    }
+
+    async function predict() {
+      if (selectedFiles.length === 0) {
+        showError('Please select at least one image first.');
+        return;
+      }
+
+      const predictBtn = document.getElementById('predictBtn');
+      const loading = document.getElementById('loading');
+      
+      predictBtn.disabled = true;
+      loading.classList.add('visible');
+      resultsSection.classList.remove('visible');
+
+      try {
+        const formData = new FormData();
+        selectedFiles.forEach(file => {
+          formData.append('files', file);
+        });
+
+        const res = await fetch(`${API_BASE}/predict`, { method: 'POST', body: formData });
+        
+        const rawText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (jsonErr) {
+          throw new Error(`Server returned non-JSON response (Status: ${res.status})`);
+        }
+
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+
+        if (!Array.isArray(data.predictions) || data.predictions.length === 0) {
+          showError('No results returned.');
+          return;
+        }
+
+        renderResults(data.predictions);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        predictBtn.disabled = false;
+        loading.classList.remove('visible');
+      }
+    }
+
+    function showError(message) {
+      resultsSection.innerHTML = `
+        <div class="error-card">
+          <strong>Error:</strong> ${escapeHtml(message)}
+        </div>
+      `;
+      resultsSection.classList.add('visible');
+    }
+
+    function renderResults(predictions) {
+      let html = `
+        <div class="results-header">
+          <h2>Prediction Results</h2>
+        </div>
+      `;
+
+      predictions.forEach((item, pIdx) => {
+        const topMatch = item.results[0];
+        html += `
+          <div class="prediction-card">
+            ${predictions.length > 1 ? `<div style="font-weight:600; font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">File: ${escapeHtml(item.filename)}</div>` : ''}
+            <div class="prediction-header">
+              <div class="prediction-title">Best Match: ${escapeHtml(topMatch.class)}</div>
+              <div class="prediction-badge">${(topMatch.probability * 100).toFixed(1)}% confident</div>
+            </div>
+            ${item.results.map((r, idx) => {
+              const confidence = (r.probability * 100).toFixed(1);
+              return `
+                <div class="result-row">
+                  <div class="result-rank ${idx === 0 ? 'top' : ''}">${idx + 1}</div>
+                  <div class="result-name" title="${escapeHtml(r.class)}">${escapeHtml(r.class)}</div>
+                  <div class="result-bar-bg">
+                    <div class="result-bar-fill" style="width: ${confidence}%"></div>
+                  </div>
+                  <div class="result-conf">${confidence}%</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+
+        if (item.medicine_info) {
+          const med = item.medicine_info;
+          html += `
+            <div class="medicine-info" style="margin-bottom: 24px;">
+              <h3>💊 Medicine Information (${escapeHtml(med.name || topMatch.class)})</h3>
+              <div class="info-grid">
+                ${med.composition ? `
+                  <div class="info-item">
+                    <div class="info-label">Composition</div>
+                    <div class="info-value">${escapeHtml(med.composition)}</div>
+                  </div>
+                ` : ''}
+                ${med.usage ? `
+                  <div class="info-item">
+                    <div class="info-label">Usage</div>
+                    <div class="info-value">${escapeHtml(med.usage)}</div>
+                  </div>
+                ` : ''}
+                ${med.description ? `
+                  <div class="info-item">
+                    <div class="info-label">Description</div>
+                    <div class="info-value">${escapeHtml(med.description)}</div>
+                  </div>
+                ` : ''}
+                ${med.side_effects ? `
+                  <div class="info-item">
+                    <div class="info-label">Common Side Effects</div>
+                    <div class="info-value">${escapeHtml(med.side_effects)}</div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="no-info" style="margin-bottom: 24px;">
+              ℹ️ No additional medicine information found for <strong>${escapeHtml(topMatch.class)}</strong> in our database.
+            </div>
+          `;
+        }
+      });
+
+      resultsSection.innerHTML = html;
+      resultsSection.classList.add('visible');
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    (async function loadMedicines() {
+      try {
+        const res = await fetch(`${API_BASE}/api/medicines`);
+        const medicines = await res.json();
+        const datalist = document.getElementById('medicineNames');
+        if (datalist && Array.isArray(medicines)) {
+          datalist.innerHTML = medicines.map(m => `<option value="${escapeHtml(m)}">`).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load medicines list', e);
+      }
+    })();
+
+    function setupImagePreview(inputId, imgId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      const img = document.getElementById(imgId);
+      if (!input) return;
+      input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+          preview.style.display = 'none';
+          return;
+        }
+        img.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+      });
+    }
+
+    setupImagePreview('intFile1', 'intImg1', 'intPreview1');
+    setupImagePreview('intFile2', 'intImg2', 'intPreview2');
+
+    async function checkInteraction() {
+      const file1 = document.getElementById('intFile1').files[0];
+      const file2 = document.getElementById('intFile2').files[0];
+      const output = document.getElementById('interactionResults');
+
+      if (!file1 || !file2) {
+        output.innerHTML = `
+          <div class="no-info">
+            ⚠️ Please upload images for both medicines before checking.
+          </div>`;
+        return;
+      }
+
+      output.innerHTML = `
+        <div class="loading visible" style="display:flex">
+          <div class="spinner"></div>
+          <span>Analyzing images and checking interaction...</span>
+        </div>`;
+
+      try {
+        const formData = new FormData();
+        formData.append('file1', file1);
+        formData.append('file2', file2);
+
+        const res = await fetch(`${API_BASE}/interactions-from-images`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        const rawText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (jsonErr) {
+          throw new Error(`Server returned non-JSON response (Status: ${res.status})`);
+        }
+
+        if (data.error) {
+          output.innerHTML = `<div class="error-card"><strong>Error:</strong> ${escapeHtml(data.error)}</div>`;
+          return;
+        }
+
+        let html = `
+          <div class="prediction-card">
+            <div class="prediction-header">
+              <div class="prediction-title">Predicted Medicines</div>
+            </div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Medicine 1</div>
+                <div class="info-value">${escapeHtml(data.medicine1)} <span style="color: var(--text-secondary); font-size: 0.85rem;">(${(data.medicine1_confidence * 100).toFixed(1)}%)</span></div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Medicine 2</div>
+                <div class="info-value">${escapeHtml(data.medicine2)} <span style="color: var(--text-secondary); font-size: 0.85rem;">(${(data.medicine2_confidence * 100).toFixed(1)}%)</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (!data.found) {
+          html += `
+            <div class="no-info">
+              ℹ️ ${escapeHtml(data.message || 'No known interaction found for these medicines.')}
+            </div>`;
+        }
+
+        output.innerHTML = html;
+
+      } catch (err) {
+        output.innerHTML = `<div class="error-card"><strong>Error:</strong> ${escapeHtml(err.message)}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
