@@ -126,7 +126,3 @@ The training script looks for images in the `images/` directory (or `dataset/pho
 - The backbone layers are frozen during training; only the classification head is updated.
 - `dataset/medicine_info.csv` is expected by `app.py` for medicine metadata but is not included in this repository.
 - The `/interactions-from-images` endpoint is a stub and returns a disabled message.
-
-## Author
-
-Amir Bhattarai
